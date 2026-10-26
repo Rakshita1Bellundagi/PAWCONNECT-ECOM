@@ -35,7 +35,12 @@ public class DBConnection {
             password = DEFAULT_PASSWORD;
         }
 
-        return DriverManager.getConnection(url, user, password);
+        try {
+            return DriverManager.getConnection(url, user, password);
+        } catch (SQLException e) {
+            System.err.println("[DBConnection] Error connecting to " + url + " (User: " + user + "): " + e.getMessage());
+            throw e;
+        }
     }
 
     public static void closeConnection(Connection conn) {
