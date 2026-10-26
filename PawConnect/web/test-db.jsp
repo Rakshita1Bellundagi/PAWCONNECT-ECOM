@@ -58,9 +58,28 @@
     %>
             <table>
                 <tr><th>Table</th><th>Rows</th><th>Status</th></tr>
-                <tr><td>categories</td><td><%= catCount %></td><td><%= catCount > 0 ? "<span style='color:#4ade80'>OK</span>" : "<span style='color:#f87171'>EMPTY (pawconnect_db.sql needs to be executed)</span>" %></td></tr>
-                <tr><td>pets</td><td><%= petCount %></td><td><%= petCount > 0 ? "<span style='color:#4ade80'>OK</span>" : "<span style='color:#f87171'>EMPTY (pawconnect_db.sql needs to be executed)</span>" %></td></tr>
+                <tr><td>categories</td><td><%= catCount %></td><td><%= catCount > 0 ? "<span style='color:#4ade80'>OK</span>" : "<span style='color:#f87171'>EMPTY</span>" %></td></tr>
+                <tr><td>pets</td><td><%= petCount %></td><td><%= petCount > 0 ? "<span style='color:#4ade80'>OK</span>" : "<span style='color:#f87171'>EMPTY</span>" %></td></tr>
             </table>
+
+            <h2 style="margin-top: 24px; font-size: 1.2rem;">DAO Execution Test</h2>
+            <%
+                try {
+                    com.pawconnect.dao.CategoryDAO catDao = new com.pawconnect.dao.CategoryDAO();
+                    java.util.List<com.pawconnect.model.Category> catList = catDao.getAllCategories();
+                    out.println("<p style='color:#4ade80'>&#10004; CategoryDAO.getAllCategories() returned: <strong>" + catList.size() + "</strong> categories</p>");
+                } catch (Throwable t) {
+                    out.println("<p style='color:#f87171'>&#10008; CategoryDAO.getAllCategories() failed: " + t.getMessage() + "</p>");
+                }
+
+                try {
+                    com.pawconnect.dao.PetDAO petDao = new com.pawconnect.dao.PetDAO();
+                    java.util.List<com.pawconnect.model.Pet> petList = petDao.getAllPets();
+                    out.println("<p style='color:#4ade80'>&#10004; PetDAO.getAllPets() returned: <strong>" + petList.size() + "</strong> pets</p>");
+                } catch (Throwable t) {
+                    out.println("<p style='color:#f87171'>&#10008; PetDAO.getAllPets() failed: " + t.getMessage() + "</p>");
+                }
+            %>
     <%
         } catch (Throwable t) {
     %>

@@ -39,8 +39,15 @@ public class BrowsePetsServlet extends HttpServlet {
             // Ignore
         }
 
+        boolean hasFilter = (keyword != null && !keyword.trim().isEmpty())
+                || categoryId > 0
+                || (location != null && !location.trim().isEmpty() && !location.equalsIgnoreCase("All"))
+                || minPrice > 0
+                || (maxPriceStr != null && !maxPriceStr.trim().isEmpty() && maxPrice > 0 && maxPrice < 99999)
+                || (gender != null && !gender.trim().isEmpty() && !gender.equalsIgnoreCase("All"));
+
         List<Pet> pets;
-        if (keyword != null || categoryId > 0 || location != null || minPrice > 0 || maxPrice > 0 || gender != null) {
+        if (hasFilter) {
             pets = petDAO.searchPets(keyword, categoryId, location, minPrice, maxPrice, gender);
         } else {
             pets = petDAO.getAllPets();

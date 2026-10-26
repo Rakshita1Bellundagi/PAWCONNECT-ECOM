@@ -12,7 +12,7 @@ public class PetDAO {
         String sql = "SELECT p.*, c.category_name, COALESCE(AVG(r.rating), 0) as avg_rating, COUNT(r.review_id) as review_count " +
                      "FROM pets p LEFT JOIN categories c ON p.category_id = c.category_id " +
                      "LEFT JOIN reviews r ON p.pet_id = r.pet_id " +
-                     "WHERE p.is_available = TRUE GROUP BY p.pet_id ORDER BY p.created_at DESC";
+                     "WHERE p.is_available = TRUE GROUP BY p.pet_id, c.category_name ORDER BY p.created_at DESC";
         try (Connection conn = DBConnection.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
@@ -30,7 +30,7 @@ public class PetDAO {
         String sql = "SELECT p.*, c.category_name, COALESCE(AVG(r.rating), 0) as avg_rating, COUNT(r.review_id) as review_count " +
                      "FROM pets p LEFT JOIN categories c ON p.category_id = c.category_id " +
                      "LEFT JOIN reviews r ON p.pet_id = r.pet_id " +
-                     "GROUP BY p.pet_id ORDER BY p.created_at DESC";
+                     "GROUP BY p.pet_id, c.category_name ORDER BY p.created_at DESC";
         try (Connection conn = DBConnection.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
@@ -47,7 +47,7 @@ public class PetDAO {
         String sql = "SELECT p.*, c.category_name, COALESCE(AVG(r.rating), 0) as avg_rating, COUNT(r.review_id) as review_count " +
                      "FROM pets p LEFT JOIN categories c ON p.category_id = c.category_id " +
                      "LEFT JOIN reviews r ON p.pet_id = r.pet_id " +
-                     "WHERE p.pet_id = ? GROUP BY p.pet_id";
+                     "WHERE p.pet_id = ? GROUP BY p.pet_id, c.category_name";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, petId);
@@ -79,7 +79,7 @@ public class PetDAO {
             sql.append("AND p.category_id = ? ");
             params.add(categoryId);
         }
-        if (location != null && !location.trim().isEmpty()) {
+        if (location != null && !location.trim().isEmpty() && !location.equalsIgnoreCase("All") && !location.equalsIgnoreCase("All Locations")) {
             sql.append("AND p.location = ? ");
             params.add(location.trim());
         }
@@ -91,12 +91,12 @@ public class PetDAO {
             sql.append("AND p.price <= ? ");
             params.add(maxPrice);
         }
-        if (gender != null && !gender.trim().isEmpty()) {
+        if (gender != null && !gender.trim().isEmpty() && !gender.equalsIgnoreCase("All")) {
             sql.append("AND p.gender = ? ");
             params.add(gender.trim());
         }
 
-        sql.append("GROUP BY p.pet_id ORDER BY p.created_at DESC");
+        sql.append("GROUP BY p.pet_id, c.category_name ORDER BY p.created_at DESC");
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
@@ -125,7 +125,7 @@ public class PetDAO {
         String sql = "SELECT p.*, c.category_name, COALESCE(AVG(r.rating), 0) as avg_rating, COUNT(r.review_id) as review_count " +
                      "FROM pets p LEFT JOIN categories c ON p.category_id = c.category_id " +
                      "LEFT JOIN reviews r ON p.pet_id = r.pet_id " +
-                     "WHERE p.category_id = ? AND p.is_available = TRUE GROUP BY p.pet_id ORDER BY p.created_at DESC";
+                     "WHERE p.category_id = ? AND p.is_available = TRUE GROUP BY p.pet_id, c.category_name ORDER BY p.created_at DESC";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, categoryId);
@@ -144,7 +144,7 @@ public class PetDAO {
         String sql = "SELECT p.*, c.category_name, COALESCE(AVG(r.rating), 0) as avg_rating, COUNT(r.review_id) as review_count " +
                      "FROM pets p LEFT JOIN categories c ON p.category_id = c.category_id " +
                      "LEFT JOIN reviews r ON p.pet_id = r.pet_id " +
-                     "WHERE p.is_available = TRUE GROUP BY p.pet_id ORDER BY avg_rating DESC, p.created_at DESC LIMIT ?";
+                     "WHERE p.is_available = TRUE GROUP BY p.pet_id, c.category_name ORDER BY avg_rating DESC, p.created_at DESC LIMIT ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, limit);

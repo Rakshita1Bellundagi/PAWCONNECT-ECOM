@@ -11,7 +11,7 @@ public class CategoryDAO {
         List<Category> categories = new ArrayList<>();
         String sql = "SELECT c.*, COUNT(p.pet_id) as pet_count FROM categories c " +
                      "LEFT JOIN pets p ON c.category_id = p.category_id AND p.is_available = TRUE " +
-                     "WHERE c.is_active = TRUE GROUP BY c.category_id ORDER BY c.category_name";
+                     "WHERE c.is_active = TRUE GROUP BY c.category_id, c.category_name, c.description, c.image_url, c.is_active ORDER BY c.category_name";
         try (Connection conn = DBConnection.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {

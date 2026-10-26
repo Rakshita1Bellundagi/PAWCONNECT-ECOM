@@ -3,6 +3,7 @@ package com.pawconnect.dao;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class DBConnection {
     private static final String DEFAULT_URL = "jdbc:mysql://localhost:3306/pawconnect_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
@@ -36,7 +37,11 @@ public class DBConnection {
         }
 
         try {
-            return DriverManager.getConnection(url, user, password);
+            Connection conn = DriverManager.getConnection(url, user, password);
+            try (Statement st = conn.createStatement()) {
+                st.execute("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
+            } catch (Exception ignored) {}
+            return conn;
         } catch (SQLException e) {
             System.err.println("[DBConnection] Error connecting to " + url + " (User: " + user + "): " + e.getMessage());
             throw e;
