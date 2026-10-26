@@ -1,0 +1,11 @@
+#heading{
+    color: blue;
+}
+#main {
+    background-color: lightgray;
+    height: 40px;
+}
+#paragraph {
+    font-size: large;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}

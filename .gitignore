@@ -1,0 +1,15 @@
+# Local Tomcat installation
+tomcat/
+
+# NetBeans private user properties & build artifacts
+nbproject/private/
+build/
+
+# Temporary / OS files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Keep the WAR file tracked for Render/Docker deployment
+!dist/wt-project_own_.war

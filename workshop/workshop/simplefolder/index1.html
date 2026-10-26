@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>JSON Dynamic Table</title>
+
+<style>
+table{
+    border-collapse: collapse;
+    width: 70%;
+    margin: 20px auto;
+}
+th, td{
+    border:1px solid black;
+    padding:8px;
+    text-align:left;
+}
+th{
+    background-color:#f2f2f2;
+}
+</style>
+
+</head>
+<body>
+
+<h2 style="text-align:center;">User Details</h2>
+
+<table id="dataTable">
+<thead>
+<tr>
+<th>Key</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<script>
+
+let data = {
+    "_id": "69f09dc68e213a1103007920",
+    "index": 6,
+    "guid": "a122477a-da53-49f7-9c77-fa093191a418",
+    "isActive": false,
+    "balance": "$3,816.50",
+    "picture": "http://placehold.it/32x32",
+    "age": 40,
+    "eyeColor": "blue",
+    "name": "Rhonda Eaton",
+    "gender": "female",
+    "company": "SUREPLEX",
+    "email": "rhondaeaton@sureplex.com",
+    "phone": "+1 (828) 531-3052",
+    "address": "349 Temple Court, Caron, Mississippi, 645",
+    "about": "Incididunt non esse amet veniam.",
+    "registered": "2017-02-06T03:05:52 -06:-30",
+    "latitude": -26.275801,
+    "longitude": -19.975649,
+    "tags": ["ipsum","eiusmod","labore","do","esse","in","nostrud"],
+    "friends": [
+        {"id":0,"name":"Goodman Barrett"},
+        {"id":1,"name":"Pugh Sexton"},
+        {"id":2,"name":"Claudette Dalton"}
+    ],
+    "greeting": "Hello, Rhonda Eaton! You have 6 unread messages.",
+    "favoriteFruit": "banana"
+};
+
+let tableBody = document.querySelector("#dataTable tbody");
+
+for (let key in data) {
+
+    let row = document.createElement("tr");
+
+    let keyCell = document.createElement("td");
+    keyCell.textContent = key;
+
+    let valueCell = document.createElement("td");
+
+    if (Array.isArray(data[key])) {
+        valueCell.textContent = JSON.stringify(data[key]);
+    } 
+    else {
+        valueCell.textContent = data[key];
+    }
+
+    row.appendChild(keyCell);
+    row.appendChild(valueCell);
+
+    tableBody.appendChild(row);
+}
+
+</script>
+
+</body>
+</html>

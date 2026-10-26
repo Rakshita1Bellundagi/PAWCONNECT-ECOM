@@ -1,0 +1,347 @@
+/* =============================================
+   PAW CONNECT - Admin Panel Stylesheet
+   ============================================= */
+
+/* ===== Admin Layout ===== */
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ===== Sidebar ===== */
+.admin-sidebar {
+    width: 260px;
+    background: #ffffff;
+    color: var(--text-primary);
+    padding: 24px 0;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.03);
+    border-right: 1px solid var(--border);
+}
+
+.admin-sidebar .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 24px 24px;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--primary);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+}
+
+.admin-sidebar .brand .paw-icon {
+    font-size: 1.5rem;
+}
+
+.admin-sidebar nav ul {
+    list-style: none;
+}
+
+.admin-sidebar nav ul li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 24px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: var(--transition);
+    border-left: 4px solid transparent;
+}
+
+.admin-sidebar nav ul li a:hover,
+.admin-sidebar nav ul li a.active {
+    background: rgba(99, 102, 241, 0.08); /* Light primary */
+    color: var(--primary);
+    border-left-color: var(--primary);
+}
+
+.admin-sidebar nav ul li a .icon {
+    width: 20px;
+    text-align: center;
+}
+
+.sidebar-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+}
+
+.admin-sidebar .admin-info {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    margin-top: auto;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: #fafafa;
+}
+
+.admin-sidebar .admin-info .name {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.admin-sidebar .admin-info .role {
+    font-size: 0.75rem;
+    color: var(--text-light);
+}
+
+/* ===== Admin Content ===== */
+.admin-content {
+    flex: 1;
+    margin-left: 260px;
+    padding: 32px 48px;
+    background: var(--bg-primary);
+    min-height: 100vh;
+}
+
+/* ===== Admin Header ===== */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.admin-header h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.admin-header .header-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+/* ===== Stats Cards ===== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-card .stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-card .stat-icon.pets { background: #FFE5D9; color: #FF6B35; }
+.stat-card .stat-icon.users { background: #DBEAFE; color: #3B82F6; }
+.stat-card .stat-icon.orders { background: #D1FAE5; color: #10B981; }
+.stat-card .stat-icon.revenue { background: #FEF3C7; color: #F59E0B; }
+
+.stat-card .stat-info h3 {
+    font-size: 0.8rem;
+    color: #6C7A89;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.stat-card .stat-info .value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+/* ===== Admin Table ===== */
+.admin-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.admin-card .card-header {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+}
+
+.admin-card .card-header h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.admin-card .card-body {
+    padding: 0;
+}
+
+/* ===== Admin Login Page ===== */
+.admin-login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('../images/hero_bg.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-login-page::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+
+.admin-login-page::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 400px;
+    height: 400px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+}
+
+.admin-login-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    padding: 48px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    z-index: 10;
+}
+
+.admin-login-card h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.admin-login-card .subtitle {
+    text-align: center;
+    color: #6C7A89;
+    margin-bottom: 32px;
+}
+
+.admin-login-card .form-group {
+    margin-bottom: 20px;
+}
+
+/* ===== Admin Form ===== */
+.admin-form {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 32px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+}
+
+.admin-form h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.admin-form .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.admin-form .form-group {
+    margin-bottom: 20px;
+    min-width: unset;
+    flex: unset;
+}
+
+/* ===== Responsive Admin ===== */
+@media (max-width: 1024px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-content { padding: 24px 32px; }
+}
+
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: 60px;
+        padding: 16px 0;
+    }
+    .admin-sidebar nav ul li a span { display: none; }
+    .admin-sidebar nav ul li a { justify-content: center; padding: 14px; border-left: none; }
+    .admin-sidebar .brand span { display: none; }
+    .admin-sidebar .brand { padding: 0 0 16px; justify-content: center; }
+    .admin-sidebar .admin-info { display: none; }
+    .sidebar-divider { margin: 8px 0; }
+
+    .admin-content { margin-left: 60px; padding: 20px 16px; }
+
+    .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+    .stat-card { padding: 16px; }
+    .stat-card .stat-info .value { font-size: 1.4rem; }
+
+    .admin-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+    .admin-header h1 { font-size: 1.4rem; }
+
+    .admin-form { padding: 20px; }
+    .admin-form .form-row { grid-template-columns: 1fr; }
+
+    .admin-card .card-header { flex-direction: column; gap: 8px; align-items: flex-start; padding: 16px; }
+    .admin-card .card-body { overflow-x: auto; }
+    .admin-card .card-body table { min-width: 700px; }
+
+    .admin-login-card { padding: 32px 24px; margin: 16px; }
+    .admin-login-card h2 { font-size: 1.4rem; }
+}
+
+@media (max-width: 480px) {
+    .admin-sidebar { width: 50px; }
+    .admin-sidebar nav ul li a { padding: 12px; font-size: 0.9rem; }
+    .admin-content { margin-left: 50px; padding: 16px 12px; }
+    .admin-login-page { padding: 16px; }
+    .admin-login-card { padding: 24px 16px; border-radius: 16px; }
+}
+

@@ -1,0 +1,7 @@
+.git
+.github
+tomcat/
+workshop/
+PawConnect-wt/
+nbproject/private/
+*.bat
