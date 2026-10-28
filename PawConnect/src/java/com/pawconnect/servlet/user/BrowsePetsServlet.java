@@ -10,7 +10,7 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet(name = "BrowsePetsServlet", urlPatterns = {"/browse"})
+@WebServlet(name = "BrowsePetsServlet", urlPatterns = { "/browse" })
 public class BrowsePetsServlet extends HttpServlet {
 
     @Override
@@ -32,9 +32,12 @@ public class BrowsePetsServlet extends HttpServlet {
         double maxPrice = 0;
 
         try {
-            if (categoryParam != null && !categoryParam.isEmpty()) categoryId = Integer.parseInt(categoryParam);
-            if (minPriceStr != null && !minPriceStr.isEmpty()) minPrice = Double.parseDouble(minPriceStr);
-            if (maxPriceStr != null && !maxPriceStr.isEmpty()) maxPrice = Double.parseDouble(maxPriceStr);
+            if (categoryParam != null && !categoryParam.isEmpty())
+                categoryId = Integer.parseInt(categoryParam);
+            if (minPriceStr != null && !minPriceStr.isEmpty())
+                minPrice = Double.parseDouble(minPriceStr);
+            if (maxPriceStr != null && !maxPriceStr.isEmpty())
+                maxPrice = Double.parseDouble(maxPriceStr);
         } catch (NumberFormatException e) {
             // Ignore
         }

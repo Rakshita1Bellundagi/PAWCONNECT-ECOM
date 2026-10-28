@@ -38,6 +38,9 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             this.innerHTML = '&#10003; Added!';
             this.style.background = '#10B981';
+            if (window.PawNotify) {
+                PawNotify.success('Item added to your shopping cart!', 'Added to Cart');
+            }
             setTimeout(() => {
                 this.innerHTML = '&#128722; Add to Cart';
                 this.style.background = '';
@@ -113,7 +116,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             if (!valid) {
                 e.preventDefault();
-                alert('Please fill in all required fields.');
+                if (window.PawModal) {
+                    PawModal.alert({
+                        title: 'Required Fields Missing',
+                        message: 'Please fill in all required fields before submitting.',
+                        type: 'warning'
+                    });
+                } else {
+                    alert('Please fill in all required fields.');
+                }
             }
         });
     });
@@ -127,12 +138,40 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
 
-    // Confirm before delete actions
+    // Confirm before delete / action
     document.querySelectorAll('[data-confirm]').forEach(element => {
         element.addEventListener('click', function(e) {
+            e.preventDefault();
             const message = this.getAttribute('data-confirm') || 'Are you sure?';
-            if (!confirm(message)) {
-                e.preventDefault();
+            const form = this.closest('form');
+            const href = this.getAttribute('href');
+
+            if (window.PawModal) {
+                PawModal.confirm({
+                    title: 'Confirmation',
+                    message: message,
+                    confirmText: 'Yes, Proceed',
+                    cancelText: 'Cancel',
+                    type: 'warning',
+                    icon: 'fa-solid fa-circle-question',
+                    onConfirm: () => {
+                        if (form && (this.type === 'submit' || this.tagName.toLowerCase() === 'button')) {
+                            form.submit();
+                        } else if (href && href !== '#' && !href.startsWith('javascript:')) {
+                            window.location.href = href;
+                        } else if (form) {
+                            form.submit();
+                        }
+                    }
+                });
+            } else {
+                if (confirm(message)) {
+                    if (form && (this.type === 'submit' || this.tagName.toLowerCase() === 'button')) {
+                        form.submit();
+                    } else if (href && href !== '#' && !href.startsWith('javascript:')) {
+                        window.location.href = href;
+                    }
+                }
             }
         });
     });

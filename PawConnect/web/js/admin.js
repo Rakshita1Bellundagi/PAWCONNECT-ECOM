@@ -7,8 +7,36 @@ document.addEventListener('DOMContentLoaded', function() {
     // Confirm delete actions
     document.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
-            if (!confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
-                e.preventDefault();
+            e.preventDefault();
+            const form = this.closest('form');
+            const href = this.getAttribute('href');
+
+            if (window.PawModal) {
+                PawModal.confirm({
+                    title: 'Delete Confirmation',
+                    message: 'Are you sure you want to delete this item? This action cannot be undone.',
+                    confirmText: 'Yes, Delete',
+                    cancelText: 'Cancel',
+                    type: 'danger',
+                    icon: 'fa-solid fa-trash-can',
+                    onConfirm: () => {
+                        if (form && this.tagName.toLowerCase() === 'button') {
+                            form.submit();
+                        } else if (href && href !== '#' && !href.startsWith('javascript:')) {
+                            window.location.href = href;
+                        } else if (form) {
+                            form.submit();
+                        }
+                    }
+                });
+            } else {
+                if (confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+                    if (form && this.tagName.toLowerCase() === 'button') {
+                        form.submit();
+                    } else if (href && href !== '#' && !href.startsWith('javascript:')) {
+                        window.location.href = href;
+                    }
+                }
             }
         });
     });
@@ -16,10 +44,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // Toggle user status confirmation
     document.querySelectorAll('.toggle-status-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('form');
             const isActive = this.getAttribute('data-active') === 'true';
             const action = isActive ? 'deactivate' : 'activate';
-            if (!confirm('Are you sure you want to ' + action + ' this user?')) {
-                e.preventDefault();
+            const title = isActive ? 'Deactivate User?' : 'Activate User?';
+            const message = isActive 
+                ? 'Are you sure you want to deactivate this user? They will not be able to log in until reactivated.' 
+                : 'Are you sure you want to activate this user? They will regain access to the platform.';
+            const confirmText = isActive ? 'Yes, Deactivate' : 'Yes, Activate';
+            const type = isActive ? 'danger' : 'success';
+            const icon = isActive ? 'fa-solid fa-user-slash' : 'fa-solid fa-user-check';
+
+            if (window.PawModal) {
+                PawModal.confirm({
+                    title: title,
+                    message: message,
+                    confirmText: confirmText,
+                    cancelText: 'Cancel',
+                    type: type,
+                    icon: icon,
+                    onConfirm: () => {
+                        form.submit();
+                    }
+                });
+            } else {
+                if (confirm('Are you sure you want to ' + action + ' this user?')) {
+                    form.submit();
+                }
             }
         });
     });
@@ -28,11 +80,32 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.status-select').forEach(select => {
         select.addEventListener('change', function() {
             const form = this.closest('form');
-            if (confirm('Update order status to "' + this.value + '"?')) {
-                form.submit();
+            const currentVal = this.getAttribute('data-current') || 'Pending';
+            const newVal = this.value;
+
+            if (newVal === currentVal) return;
+
+            if (window.PawModal) {
+                PawModal.confirm({
+                    title: 'Update Order Status',
+                    message: 'Update order status to "' + newVal + '"?',
+                    confirmText: 'Update Status',
+                    cancelText: 'Cancel',
+                    type: 'info',
+                    icon: 'fa-solid fa-box-open',
+                    onConfirm: () => {
+                        form.submit();
+                    },
+                    onCancel: () => {
+                        select.value = currentVal;
+                    }
+                });
             } else {
-                // Reset to previous value
-                this.value = this.getAttribute('data-current');
+                if (confirm('Update order status to "' + newVal + '"?')) {
+                    form.submit();
+                } else {
+                    select.value = currentVal;
+                }
             }
         });
     });

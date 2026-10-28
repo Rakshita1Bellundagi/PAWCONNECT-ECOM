@@ -44,6 +44,7 @@
     </footer>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+    <script src="<%= footerCtx %>/js/modal.js"></script>
     <script src="<%= footerCtx %>/js/main.js"></script>
     <script>
         AOS.init({

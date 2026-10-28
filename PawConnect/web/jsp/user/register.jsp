@@ -119,12 +119,28 @@
                             map.setView([position.coords.latitude, position.coords.longitude], 15);
                         },
                         function(error) {
-                            alert('Could not get your location. Please click on the map manually.');
+                            if (window.PawModal) {
+                                PawModal.alert({
+                                    title: 'Location Unavailable',
+                                    message: 'Could not get your location automatically. Please click on the map manually to pick your location.',
+                                    type: 'warning'
+                                });
+                            } else {
+                                alert('Could not get your location. Please click on the map manually.');
+                            }
                             document.getElementById('location-status').style.display = 'none';
                         }
                     );
                 } else {
-                    alert('Geolocation is not supported by your browser');
+                    if (window.PawModal) {
+                        PawModal.alert({
+                            title: 'Not Supported',
+                            message: 'Geolocation is not supported by your browser.',
+                            type: 'warning'
+                        });
+                    } else {
+                        alert('Geolocation is not supported by your browser');
+                    }
                 }
             }
 

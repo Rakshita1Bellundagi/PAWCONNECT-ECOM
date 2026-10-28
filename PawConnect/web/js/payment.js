@@ -62,6 +62,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Payment form submission
+    function showPaymentAlert(msg, el) {
+        if (window.PawNotify) {
+            PawNotify.warning(msg, 'Payment Information Required');
+            if (el) el.focus();
+        } else if (window.PawModal) {
+            PawModal.alert({
+                title: 'Payment Information Required',
+                message: msg,
+                type: 'warning',
+                onConfirm: () => {
+                    if (el) el.focus();
+                }
+            });
+        } else {
+            if (el) el.focus();
+        }
+    }
+
     const paymentForm = document.getElementById('paymentForm');
     if (paymentForm) {
         paymentForm.addEventListener('submit', function(e) {
@@ -69,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!method) {
                 e.preventDefault();
-                alert('Please select a payment method.');
+                showPaymentAlert('Please select a payment method.');
                 return;
             }
 
@@ -82,36 +100,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (!card.value || card.value.replace(/\s/g, '').length < 16) {
                     e.preventDefault();
-                    alert('Please enter a valid 16-digit card number.');
-                    card.focus();
+                    showPaymentAlert('Please enter a valid 16-digit card number.', card);
                     return;
                 }
                 if (!expiry.value || expiry.value.length < 5) {
                     e.preventDefault();
-                    alert('Please enter a valid expiry date (MM/YY).');
-                    expiry.focus();
+                    showPaymentAlert('Please enter a valid expiry date (MM/YY).', expiry);
                     return;
                 }
                 if (!cvv.value || cvv.value.length < 3) {
                     e.preventDefault();
-                    alert('Please enter a valid 3-digit CVV.');
-                    cvv.focus();
+                    showPaymentAlert('Please enter a valid 3-digit CVV.', cvv);
                     return;
                 }
             } else if (method === 'UPI') {
                 const upi = document.getElementById('upiId');
                 if (!upi.value || !upi.value.includes('@')) {
                     e.preventDefault();
-                    alert('Please enter a valid UPI ID (e.g., name@upi).');
-                    upi.focus();
+                    showPaymentAlert('Please enter a valid UPI ID (e.g., name@upi).', upi);
                     return;
                 }
             } else if (method === 'Net Banking') {
                 const bank = document.getElementById('bankSelect');
                 if (!bank.value) {
                     e.preventDefault();
-                    alert('Please select your bank.');
-                    bank.focus();
+                    showPaymentAlert('Please select your bank.', bank);
                     return;
                 }
             }
