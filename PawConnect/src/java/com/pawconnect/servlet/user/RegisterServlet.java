@@ -13,6 +13,11 @@ public class RegisterServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session != null && session.getAttribute("userId") != null) {
+            response.sendRedirect(request.getContextPath() + "/browse");
+            return;
+        }
         request.getRequestDispatcher("/jsp/user/register.jsp").forward(request, response);
     }
 
@@ -32,17 +37,53 @@ public class RegisterServlet extends HttpServlet {
         String latitudeStr = request.getParameter("latitude");
         String longitudeStr = request.getParameter("longitude");
 
-        UserDAO userDAO = new UserDAO();
+        // Clean & normalize inputs
+        fullName = fullName != null ? fullName.trim() : "";
+        email = email != null ? email.trim().toLowerCase() : "";
+        phone = phone != null ? phone.trim() : "";
+        address = address != null ? address.trim() : "";
+        city = city != null ? city.trim() : "";
+        state = state != null ? state.trim() : "";
+        pincode = pincode != null ? pincode.trim() : "";
 
-        // Validation
-        if (password == null || confirmPassword == null || !password.equals(confirmPassword)) {
-            request.setAttribute("error", "Passwords do not match or are empty!");
+        // Preserve input values for re-display on error
+        request.setAttribute("fullName", fullName);
+        request.setAttribute("email", email);
+        request.setAttribute("phone", phone);
+        request.setAttribute("address", address);
+        request.setAttribute("city", city);
+        request.setAttribute("state", state);
+        request.setAttribute("pincode", pincode);
+
+        // Validations
+        if (fullName.isEmpty()) {
+            request.setAttribute("error", "Full name is required!");
             request.getRequestDispatcher("/jsp/user/register.jsp").forward(request, response);
             return;
         }
 
-        if (email == null || email.trim().isEmpty() || userDAO.emailExists(email)) {
-            request.setAttribute("error", "Invalid email or already registered!");
+        if (email.isEmpty() || !email.contains("@") || !email.contains(".")) {
+            request.setAttribute("error", "Please enter a valid email address!");
+            request.getRequestDispatcher("/jsp/user/register.jsp").forward(request, response);
+            return;
+        }
+
+        if (password == null || password.trim().length() < 6) {
+            request.setAttribute("error", "Password must be at least 6 characters long!");
+            request.getRequestDispatcher("/jsp/user/register.jsp").forward(request, response);
+            return;
+        }
+
+        if (confirmPassword == null || !password.equals(confirmPassword)) {
+            request.setAttribute("error", "Passwords do not match!");
+            request.getRequestDispatcher("/jsp/user/register.jsp").forward(request, response);
+            return;
+        }
+
+        UserDAO userDAO = new UserDAO();
+
+        if (userDAO.emailExists(email)) {
+            request.setAttribute("error", "An account with this email is already registered! Please sign in.");
             request.getRequestDispatcher("/jsp/user/register.jsp").forward(request, response);
             return;
         }
@@ -51,21 +92,25 @@ public class RegisterServlet extends HttpServlet {
         user.setFullName(fullName);
         user.setEmail(email);
         user.setPassword(password);
-        user.setPhone(phone);
-        user.setAddress(address);
-        user.setCity(city);
-        user.setState(state);
-        user.setPincode(pincode);
-        
+        user.setPhone(phone.isEmpty() ? null : phone);
+        user.setAddress(address.isEmpty() ? null : address);
+        user.setCity(city.isEmpty() ? null : city);
+        user.setState(state.isEmpty() ? null : state);
+        user.setPincode(pincode.isEmpty() ? null : pincode);
+
         try {
-            if (latitudeStr != null && !latitudeStr.isEmpty()) user.setLatitude(Double.parseDouble(latitudeStr));
-            if (longitudeStr != null && !longitudeStr.isEmpty()) user.setLongitude(Double.parseDouble(longitudeStr));
+            if (latitudeStr != null && !latitudeStr.trim().isEmpty()) {
+                user.setLatitude(Double.parseDouble(latitudeStr.trim()));
+            }
+            if (longitudeStr != null && !longitudeStr.trim().isEmpty()) {
+                user.setLongitude(Double.parseDouble(longitudeStr.trim()));
+            }
         } catch (NumberFormatException e) {
-            // ignore invalid coordinates
+            // Ignore invalid coordinates
         }
 
         if (userDAO.register(user)) {
-            // Auto login after registration
+            // Auto-login after successful registration
             User loggedInUser = userDAO.login(email, password);
             if (loggedInUser != null) {
                 HttpSession session = request.getSession();
@@ -75,11 +120,11 @@ public class RegisterServlet extends HttpServlet {
                 session.setMaxInactiveInterval(30 * 60); // 30 minutes
                 response.sendRedirect(request.getContextPath() + "/browse");
             } else {
-                request.setAttribute("success", "Registration successful! Please login.");
+                request.setAttribute("success", "Registration successful! Please sign in.");
                 request.getRequestDispatcher("/jsp/user/login.jsp").forward(request, response);
             }
         } else {
-            request.setAttribute("error", "Registration failed! Please try again.");
+            request.setAttribute("error", "Registration failed! Please check your information and try again.");
             request.getRequestDispatcher("/jsp/user/register.jsp").forward(request, response);
         }
     }

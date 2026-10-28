@@ -2,6 +2,13 @@
 <jsp:include page="/jsp/common/header.jsp"><jsp:param name="pageTitle" value="Register"/></jsp:include>
 <%
     String error = (String) request.getAttribute("error");
+    String regFullName = (String) request.getAttribute("fullName");
+    String regEmail = (String) request.getAttribute("email");
+    String regPhone = (String) request.getAttribute("phone");
+    String regAddress = (String) request.getAttribute("address");
+    String regCity = (String) request.getAttribute("city");
+    String regState = (String) request.getAttribute("state");
+    String regPincode = (String) request.getAttribute("pincode");
     String ctx = request.getContextPath();
 %>
 
@@ -14,20 +21,20 @@
             <div class="alert alert-danger"><i class="fa-solid fa-triangle-exclamation"></i> <%= error %></div>
         <% } %>
 
-        <form method="post" action="<%= ctx %>/register" data-validate="true">
+        <form id="register-form" method="post" action="<%= ctx %>/register">
             <div class="form-group">
                 <label>Full Name *</label>
-                <input type="text" name="fullName" class="form-control" placeholder="Enter your full name" required>
+                <input type="text" name="fullName" class="form-control" placeholder="Enter your full name" value="<%= regFullName != null ? regFullName : "" %>" required>
             </div>
             <div class="form-group">
                 <label>Email Address *</label>
-                <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
+                <input type="email" name="email" class="form-control" placeholder="Enter your email" value="<%= regEmail != null ? regEmail : "" %>" required>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                 <div class="form-group">
                     <label>Password *</label>
                     <div style="position: relative;">
-                        <input type="password" id="reg-password" name="password" class="form-control" placeholder="Create password" required onkeyup="checkPasswordStrength()">
+                        <input type="password" id="reg-password" name="password" class="form-control" placeholder="Create password (min 6 chars)" required minlength="6" onkeyup="checkPasswordStrength()">
                         <i class="fa-solid fa-eye" id="toggle-reg-pwd" style="position: absolute; right: 15px; top: 15px; cursor: pointer; color: var(--text-light);" onclick="togglePassword('reg-password', 'toggle-reg-pwd')"></i>
                     </div>
                     <div id="password-strength-container" style="margin-top: 8px; height: 4px; background: #eee; border-radius: 2px; overflow: hidden; display: none;">
@@ -38,19 +45,19 @@
                 <div class="form-group">
                     <label>Confirm Password *</label>
                     <div style="position: relative;">
-                        <input type="password" id="reg-confirm" name="confirmPassword" class="form-control" placeholder="Confirm password" required onkeyup="checkPasswordMatch()">
+                        <input type="password" id="reg-confirm" name="confirmPassword" class="form-control" placeholder="Confirm password" required minlength="6" onkeyup="checkPasswordMatch()">
                         <i class="fa-solid fa-eye" id="toggle-reg-conf" style="position: absolute; right: 15px; top: 15px; cursor: pointer; color: var(--text-light);" onclick="togglePassword('reg-confirm', 'toggle-reg-conf')"></i>
                     </div>
-                    <small id="password-match-text" style="color: var(--danger); font-size: 0.75rem; display: none; margin-top: 4px;">Passwords do not match</small>
+                    <small id="password-match-text" style="font-size: 0.75rem; display: none; margin-top: 4px;"></small>
                 </div>
             </div>
             <div class="form-group">
                 <label>Phone Number</label>
-                <input type="tel" name="phone" class="form-control" placeholder="Enter phone number">
+                <input type="tel" name="phone" class="form-control" placeholder="Enter phone number" value="<%= regPhone != null ? regPhone : "" %>">
             </div>
             <div class="form-group">
                 <label>Address</label>
-                <textarea id="reg-address" name="address" class="form-control" rows="2" placeholder="Enter your full address"></textarea>
+                <textarea id="reg-address" name="address" class="form-control" rows="2" placeholder="Enter your full address"><%= regAddress != null ? regAddress : "" %></textarea>
             </div>
             
             <!-- Leaflet Map Integration -->
@@ -70,18 +77,18 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
                 <div class="form-group">
                     <label>City</label>
-                    <input type="text" id="reg-city" name="city" class="form-control" placeholder="City">
+                    <input type="text" id="reg-city" name="city" class="form-control" placeholder="City" value="<%= regCity != null ? regCity : "" %>">
                 </div>
                 <div class="form-group">
                     <label>State</label>
-                    <input type="text" id="reg-state" name="state" class="form-control" placeholder="State">
+                    <input type="text" id="reg-state" name="state" class="form-control" placeholder="State" value="<%= regState != null ? regState : "" %>">
                 </div>
                 <div class="form-group">
                     <label>Pincode</label>
-                    <input type="text" id="reg-pincode" name="pincode" class="form-control" placeholder="Pincode">
+                    <input type="text" id="reg-pincode" name="pincode" class="form-control" placeholder="Pincode" value="<%= regPincode != null ? regPincode : "" %>">
                 </div>
             </div>
-            <button type="submit" id="register-btn" class="btn btn-primary btn-block btn-lg" disabled style="opacity: 0.6; cursor: not-allowed;" title="Please enter a strong password first">Create Account <i class="fa-solid fa-lock"></i></button>
+            <button type="submit" id="register-btn" class="btn btn-primary btn-block btn-lg">Create Account <i class="fa-solid fa-arrow-right"></i></button>
         </form>
 
         <!-- Leaflet CSS & JS -->
@@ -125,6 +132,8 @@
                                     message: 'Could not get your location automatically. Please click on the map manually to pick your location.',
                                     type: 'warning'
                                 });
+                            } else if (window.PawNotify) {
+                                PawNotify.warning('Could not get your location. Please click on the map manually.');
                             } else {
                                 alert('Could not get your location. Please click on the map manually.');
                             }
@@ -167,15 +176,11 @@
                     .then(data => {
                         let cityText = '';
                         if(data.address) {
-                            // Try to get City, State, and Pincode
                             const city = data.address.city || data.address.town || data.address.village || data.address.state_district || data.address.county || '';
                             const state = data.address.state || '';
                             const pincode = data.address.postcode || '';
-                            
-                            // Try to get a meaningful address line
                             let address = data.display_name || '';
                             
-                            // Fill the form fields using IDs to guarantee no conflicts
                             document.getElementById('reg-city').value = city;
                             document.getElementById('reg-state').value = state;
                             document.getElementById('reg-pincode').value = pincode;
@@ -196,9 +201,6 @@
         </script>
 
         <script>
-            let isStrong = false;
-            let isMatch = false;
-
             function togglePassword(inputId, iconId) {
                 const input = document.getElementById(inputId);
                 const icon = document.getElementById(iconId);
@@ -219,41 +221,41 @@
                 const bar = document.getElementById('password-strength-bar');
                 const text = document.getElementById('password-strength-text');
                 
-                if(pwd.length === 0) {
+                if (pwd.length === 0) {
                     container.style.display = 'none';
                     text.innerText = '';
-                    isStrong = false;
-                    updateButton();
                     return;
                 }
                 
                 container.style.display = 'block';
                 
-                let strength = 0;
-                if (pwd.length >= 8) strength += 1;
-                if (pwd.match(/[a-z]+/)) strength += 1;
-                if (pwd.match(/[A-Z]+/)) strength += 1;
-                if (pwd.match(/[0-9]+/)) strength += 1;
-                if (pwd.match(/[$@#&!]+/)) strength += 1;
+                let score = 0;
+                if (pwd.length >= 6) score += 1;
+                if (pwd.length >= 8) score += 1;
+                if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score += 1;
+                if (/[0-9]/.test(pwd)) score += 1;
+                if (/[^a-zA-Z0-9]/.test(pwd)) score += 1;
 
-                if (strength <= 2) {
-                    bar.style.width = '33%';
-                    bar.style.backgroundColor = 'var(--danger)';
-                    text.innerText = 'Weak - Needs uppercase, numbers & symbols';
-                    text.style.color = 'var(--danger)';
-                    isStrong = false;
-                } else if (strength === 3 || strength === 4) {
-                    bar.style.width = '66%';
-                    bar.style.backgroundColor = '#F59E0B'; // Orange
-                    text.innerText = 'Medium - Add more variety';
-                    text.style.color = '#F59E0B';
-                    isStrong = false;
+                if (pwd.length < 6) {
+                    bar.style.width = '25%';
+                    bar.style.backgroundColor = 'var(--danger, #ef4444)';
+                    text.innerText = 'Too short (min 6 characters required)';
+                    text.style.color = 'var(--danger, #ef4444)';
+                } else if (score <= 2) {
+                    bar.style.width = '50%';
+                    bar.style.backgroundColor = '#f97316'; // Orange
+                    text.innerText = 'Fair password';
+                    text.style.color = '#f97316';
+                } else if (score <= 4) {
+                    bar.style.width = '75%';
+                    bar.style.backgroundColor = '#eab308'; // Amber
+                    text.innerText = 'Good password';
+                    text.style.color = '#eab308';
                 } else {
                     bar.style.width = '100%';
-                    bar.style.backgroundColor = 'var(--success)';
-                    text.innerText = 'Strong - Ready to go!';
-                    text.style.color = 'var(--success)';
-                    isStrong = true;
+                    bar.style.backgroundColor = 'var(--success, #10b981)';
+                    text.innerText = 'Strong password!';
+                    text.style.color = 'var(--success, #10b981)';
                 }
                 
                 checkPasswordMatch();
@@ -264,35 +266,46 @@
                 const conf = document.getElementById('reg-confirm').value;
                 const matchText = document.getElementById('password-match-text');
                 
-                if(conf.length === 0) {
+                if (conf.length === 0) {
                     matchText.style.display = 'none';
-                    isMatch = false;
-                } else if(pwd !== conf) {
+                } else if (pwd !== conf) {
                     matchText.style.display = 'block';
-                    isMatch = false;
+                    matchText.innerText = 'Passwords do not match';
+                    matchText.style.color = 'var(--danger, #ef4444)';
                 } else {
-                    matchText.style.display = 'none';
-                    isMatch = true;
+                    matchText.style.display = 'block';
+                    matchText.innerText = 'Passwords match';
+                    matchText.style.color = 'var(--success, #10b981)';
                 }
-                updateButton();
             }
 
-            function updateButton() {
-                const btn = document.getElementById('register-btn');
-                if(isStrong && isMatch) {
-                    btn.disabled = false;
-                    btn.style.opacity = '1';
-                    btn.style.cursor = 'pointer';
-                    btn.innerHTML = 'Create Account <i class="fa-solid fa-arrow-right"></i>';
-                    btn.title = '';
-                } else {
-                    btn.disabled = true;
-                    btn.style.opacity = '0.6';
-                    btn.style.cursor = 'not-allowed';
-                    btn.innerHTML = 'Create Account <i class="fa-solid fa-lock"></i>';
-                    btn.title = 'Please enter a strong password and match it first';
+            // Client-side form submission validation
+            document.getElementById('register-form').addEventListener('submit', function(e) {
+                const pwd = document.getElementById('reg-password').value;
+                const conf = document.getElementById('reg-confirm').value;
+                
+                if (!pwd || pwd.length < 6) {
+                    e.preventDefault();
+                    if (window.PawNotify) {
+                        PawNotify.error('Password must be at least 6 characters long.');
+                    } else {
+                        alert('Password must be at least 6 characters long.');
+                    }
+                    document.getElementById('reg-password').focus();
+                    return false;
                 }
-            }
+                
+                if (pwd !== conf) {
+                    e.preventDefault();
+                    if (window.PawNotify) {
+                        PawNotify.error('Passwords do not match. Please re-check.');
+                    } else {
+                        alert('Passwords do not match.');
+                    }
+                    document.getElementById('reg-confirm').focus();
+                    return false;
+                }
+            });
         </script>
 
         <div class="auth-footer">

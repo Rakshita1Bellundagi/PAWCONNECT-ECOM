@@ -8,46 +8,112 @@ import java.util.List;
 
 public class UserDAO {
 
+    private static volatile boolean columnsEnsured = false;
+
+    /**
+     * Best-effort check to make sure latitude & longitude columns exist in users table.
+     */
+    private static void ensureUserColumnsExist() {
+        if (columnsEnsured) return;
+        try (Connection conn = DBConnection.getConnection();
+             Statement st = conn.createStatement()) {
+            try {
+                st.execute("ALTER TABLE users ADD COLUMN latitude DOUBLE");
+            } catch (Exception ignored) {}
+            try {
+                st.execute("ALTER TABLE users ADD COLUMN longitude DOUBLE");
+            } catch (Exception ignored) {}
+            columnsEnsured = true;
+        } catch (Exception ignored) {}
+    }
+
     public User login(String email, String password) {
-        String sql = "SELECT * FROM users WHERE email = ? AND password = ? AND is_active = TRUE";
+        if (email == null || password == null) return null;
+        String cleanEmail = email.trim();
+        String hashedPassword = PasswordUtil.hashPassword(password);
+
+        // Support both MD5 hash and legacy/seed plain-text password, case-insensitive email,
+        // and is_active check (TRUE, 1, or default NULL).
+        String sql = "SELECT * FROM users " +
+                     "WHERE LOWER(TRIM(email)) = LOWER(?) " +
+                     "AND (password = ? OR password = ?) " +
+                     "AND (is_active = TRUE OR is_active = 1 OR is_active IS NULL)";
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, email);
-            ps.setString(2, PasswordUtil.hashPassword(password));
+            ps.setString(1, cleanEmail);
+            ps.setString(2, hashedPassword);
+            ps.setString(3, password);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return mapUser(rs);
+                User user = mapUser(rs);
+                // If stored password was plain text, silently upgrade to hash
+                String storedPwd = rs.getString("password");
+                if (password.equals(storedPwd) && !hashedPassword.equals(storedPwd)) {
+                    try {
+                        updatePassword(user.getUserId(), password);
+                    } catch (Exception ignored) {}
+                }
+                return user;
             }
         } catch (SQLException e) {
+            System.err.println("[UserDAO.login] Error: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
     }
 
     public boolean register(User user) {
-        String sql = "INSERT INTO users (full_name, email, password, phone, address, city, state, pincode, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, user.getFullName());
-            ps.setString(2, user.getEmail());
-            ps.setString(3, PasswordUtil.hashPassword(user.getPassword()));
-            ps.setString(4, user.getPhone());
-            ps.setString(5, user.getAddress());
-            ps.setString(6, user.getCity());
-            ps.setString(7, user.getState());
-            ps.setString(8, user.getPincode());
-            if (user.getLatitude() != null) {
-                ps.setDouble(9, user.getLatitude());
-            } else {
-                ps.setNull(9, java.sql.Types.DOUBLE);
+        if (user == null || user.getEmail() == null || user.getPassword() == null) return false;
+        ensureUserColumnsExist();
+
+        String cleanEmail = user.getEmail().trim().toLowerCase();
+        String hashedPassword = PasswordUtil.hashPassword(user.getPassword());
+
+        String sqlWithCoords = "INSERT INTO users (full_name, email, password, phone, address, city, state, pincode, is_active, latitude, longitude) " +
+                               "VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE, ?, ?)";
+        String sqlWithoutCoords = "INSERT INTO users (full_name, email, password, phone, address, city, state, pincode, is_active) " +
+                                  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            // First attempt with coordinates
+            try (PreparedStatement ps = conn.prepareStatement(sqlWithCoords)) {
+                ps.setString(1, user.getFullName());
+                ps.setString(2, cleanEmail);
+                ps.setString(3, hashedPassword);
+                ps.setString(4, user.getPhone());
+                ps.setString(5, user.getAddress());
+                ps.setString(6, user.getCity());
+                ps.setString(7, user.getState());
+                ps.setString(8, user.getPincode());
+                if (user.getLatitude() != null) {
+                    ps.setDouble(9, user.getLatitude());
+                } else {
+                    ps.setNull(9, java.sql.Types.DOUBLE);
+                }
+                if (user.getLongitude() != null) {
+                    ps.setDouble(10, user.getLongitude());
+                } else {
+                    ps.setNull(10, java.sql.Types.DOUBLE);
+                }
+                return ps.executeUpdate() > 0;
+            } catch (SQLException ex) {
+                System.err.println("[UserDAO.register] Primary insert with coordinates failed, attempting fallback without coordinates: " + ex.getMessage());
+                // Fallback attempt without coordinates
+                try (PreparedStatement ps2 = conn.prepareStatement(sqlWithoutCoords)) {
+                    ps2.setString(1, user.getFullName());
+                    ps2.setString(2, cleanEmail);
+                    ps2.setString(3, hashedPassword);
+                    ps2.setString(4, user.getPhone());
+                    ps2.setString(5, user.getAddress());
+                    ps2.setString(6, user.getCity());
+                    ps2.setString(7, user.getState());
+                    ps2.setString(8, user.getPincode());
+                    return ps2.executeUpdate() > 0;
+                }
             }
-            if (user.getLongitude() != null) {
-                ps.setDouble(10, user.getLongitude());
-            } else {
-                ps.setNull(10, java.sql.Types.DOUBLE);
-            }
-            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
+            System.err.println("[UserDAO.register] Error: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -69,27 +135,43 @@ public class UserDAO {
     }
 
     public boolean updateUser(User user) {
-        String sql = "UPDATE users SET full_name=?, phone=?, address=?, city=?, state=?, pincode=?, latitude=?, longitude=? WHERE user_id=?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, user.getFullName());
-            ps.setString(2, user.getPhone());
-            ps.setString(3, user.getAddress());
-            ps.setString(4, user.getCity());
-            ps.setString(5, user.getState());
-            ps.setString(6, user.getPincode());
-            if (user.getLatitude() != null) {
-                ps.setDouble(7, user.getLatitude());
-            } else {
-                ps.setNull(7, java.sql.Types.DOUBLE);
+        ensureUserColumnsExist();
+        String sqlWithCoords = "UPDATE users SET full_name=?, phone=?, address=?, city=?, state=?, pincode=?, latitude=?, longitude=? WHERE user_id=?";
+        String sqlWithoutCoords = "UPDATE users SET full_name=?, phone=?, address=?, city=?, state=?, pincode=? WHERE user_id=?";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(sqlWithCoords)) {
+                ps.setString(1, user.getFullName());
+                ps.setString(2, user.getPhone());
+                ps.setString(3, user.getAddress());
+                ps.setString(4, user.getCity());
+                ps.setString(5, user.getState());
+                ps.setString(6, user.getPincode());
+                if (user.getLatitude() != null) {
+                    ps.setDouble(7, user.getLatitude());
+                } else {
+                    ps.setNull(7, java.sql.Types.DOUBLE);
+                }
+                if (user.getLongitude() != null) {
+                    ps.setDouble(8, user.getLongitude());
+                } else {
+                    ps.setNull(8, java.sql.Types.DOUBLE);
+                }
+                ps.setInt(9, user.getUserId());
+                return ps.executeUpdate() > 0;
+            } catch (SQLException ex) {
+                System.err.println("[UserDAO.updateUser] Primary update failed, fallback without coords: " + ex.getMessage());
+                try (PreparedStatement ps2 = conn.prepareStatement(sqlWithoutCoords)) {
+                    ps2.setString(1, user.getFullName());
+                    ps2.setString(2, user.getPhone());
+                    ps2.setString(3, user.getAddress());
+                    ps2.setString(4, user.getCity());
+                    ps2.setString(5, user.getState());
+                    ps2.setString(6, user.getPincode());
+                    ps2.setInt(7, user.getUserId());
+                    return ps2.executeUpdate() > 0;
+                }
             }
-            if (user.getLongitude() != null) {
-                ps.setDouble(8, user.getLongitude());
-            } else {
-                ps.setNull(8, java.sql.Types.DOUBLE);
-            }
-            ps.setInt(9, user.getUserId());
-            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -110,10 +192,11 @@ public class UserDAO {
     }
 
     public boolean emailExists(String email) {
-        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
+        if (email == null || email.trim().isEmpty()) return false;
+        String sql = "SELECT COUNT(*) FROM users WHERE LOWER(TRIM(email)) = LOWER(?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, email);
+            ps.setString(1, email.trim());
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return rs.getInt(1) > 0;
@@ -122,6 +205,28 @@ public class UserDAO {
             e.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * Checks user active status. Returns:
+     * - Boolean.TRUE if active
+     * - Boolean.FALSE if deactivated
+     * - null if user does not exist
+     */
+    public Boolean checkUserActiveStatus(String email) {
+        if (email == null || email.trim().isEmpty()) return null;
+        String sql = "SELECT is_active FROM users WHERE LOWER(TRIM(email)) = LOWER(?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email.trim());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getBoolean("is_active");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public List<User> getAllUsers() {
@@ -204,7 +309,7 @@ public class UserDAO {
         try {
             double lat = rs.getDouble("latitude");
             if (!rs.wasNull()) user.setLatitude(lat);
-            
+
             double lng = rs.getDouble("longitude");
             if (!rs.wasNull()) user.setLongitude(lng);
         } catch (SQLException e) {

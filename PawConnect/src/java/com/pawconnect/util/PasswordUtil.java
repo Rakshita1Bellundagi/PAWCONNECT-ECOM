@@ -11,7 +11,7 @@ public class PasswordUtil {
         }
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] hashBytes = md.digest(password.getBytes());
+            byte[] hashBytes = md.digest(password.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
             for (byte b : hashBytes) {
                 sb.append(String.format("%02x", b));

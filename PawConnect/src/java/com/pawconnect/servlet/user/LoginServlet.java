@@ -27,7 +27,10 @@ public class LoginServlet extends HttpServlet {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
 
-        if (email == null || password == null || email.trim().isEmpty() || password.trim().isEmpty()) {
+        email = email != null ? email.trim() : "";
+        password = password != null ? password.trim() : "";
+
+        if (email.isEmpty() || password.isEmpty()) {
             request.setAttribute("error", "Email and password cannot be empty!");
             request.setAttribute("email", email);
             request.getRequestDispatcher("/jsp/user/login.jsp").forward(request, response);
@@ -46,7 +49,12 @@ public class LoginServlet extends HttpServlet {
 
             response.sendRedirect(request.getContextPath() + "/browse");
         } else {
-            request.setAttribute("error", "Invalid email or password!");
+            Boolean activeStatus = userDAO.checkUserActiveStatus(email);
+            if (Boolean.FALSE.equals(activeStatus)) {
+                request.setAttribute("error", "Your account has been deactivated. Please contact support.");
+            } else {
+                request.setAttribute("error", "Invalid email or password!");
+            }
             request.setAttribute("email", email);
             request.getRequestDispatcher("/jsp/user/login.jsp").forward(request, response);
         }
