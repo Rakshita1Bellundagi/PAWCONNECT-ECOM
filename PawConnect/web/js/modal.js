@@ -1,8 +1,8 @@
 // =======================================================
-// PAW CONNECT - In-App Notification & Custom Modal System
-// 1. Toast Notifications (Success, Error, Warning, Info)
-// 2. Custom Centered Confirmation & Prompt Modals
-// 3. Fully replaces browser native alert(), confirm(), prompt()
+// PAW CONNECT - In-App Custom Modal & Notification System
+// Custom popup dialogs designed specifically for Paw Connect
+// Fully responsive on both desktop and mobile screens
+// Replaces browser-native alert(), confirm(), prompt()
 // =======================================================
 
 (function() {
@@ -29,15 +29,6 @@
     }
 
     const PawNotify = {
-        /**
-         * Show an in-app toast notification
-         * @param {Object} opts
-         * @param {'success'|'error'|'warning'|'info'} opts.type
-         * @param {string} opts.title
-         * @param {string} opts.message
-         * @param {number} opts.duration In milliseconds, default 4500. 0 for persistent.
-         * @param {string} opts.icon Custom FontAwesome icon class
-         */
         show: function(opts) {
             const container = ensureToastContainer();
             const type = opts.type || 'info';
@@ -82,7 +73,6 @@
 
             container.appendChild(toast);
 
-            // Trigger slide in animation
             requestAnimationFrame(() => {
                 toast.classList.add('paw-toast-show');
             });
@@ -114,7 +104,6 @@
 
                 dismissTimeout = setTimeout(dismissToast, duration);
 
-                // Pause timer on hover
                 toast.addEventListener('mouseenter', () => {
                     clearTimeout(dismissTimeout);
                     remaining -= (Date.now() - startTime);
@@ -132,9 +121,7 @@
                 });
             }
 
-            return {
-                dismiss: dismissToast
-            };
+            return { dismiss: dismissToast };
         },
 
         success: function(message, title, duration) {
@@ -164,13 +151,14 @@
 
     // =======================================================
     // 2. CUSTOM IN-APP MODAL ENGINE (PawModal)
-    // Centered in the middle of the screen
+    // Custom branded popup matching website design
+    // Responsive across desktop, tablet, and mobile
     // =======================================================
     let modalEl = null;
     let activeResolve = null;
     let activeOnConfirm = null;
     let activeOnCancel = null;
-    let currentMode = 'confirm'; // 'confirm' | 'alert' | 'prompt'
+    let currentMode = 'confirm';
 
     function ensureModal() {
         if (modalEl) return modalEl;
@@ -191,7 +179,11 @@
 
         wrapper.innerHTML = `
             <div class="paw-modal-card" id="pawModalCard">
-                <button type="button" class="paw-modal-close" id="pawModalClose" aria-label="Close modal">&times;</button>
+                <button type="button" class="paw-modal-close" id="pawModalClose" aria-label="Close dialog">&times;</button>
+                <div class="paw-modal-brand">
+                    <span class="paw-modal-paw-icon"><i class="fa-solid fa-paw"></i></span>
+                    <span class="paw-modal-brand-text">Paw Connect</span>
+                </div>
                 <div class="paw-modal-icon-wrapper" id="pawModalIconWrapper">
                     <i id="pawModalIcon" class="fa-solid fa-triangle-exclamation"></i>
                 </div>
@@ -216,20 +208,17 @@
         const closeBtn = document.getElementById('pawModalClose');
         const cancelBtn = document.getElementById('pawModalCancel');
         const confirmBtn = document.getElementById('pawModalConfirm');
-        const inputEl = document.getElementById('pawModalInput');
 
         closeBtn.addEventListener('click', () => handleModalClose(false));
         cancelBtn.addEventListener('click', () => handleModalClose(false));
         confirmBtn.addEventListener('click', () => handleModalClose(true));
 
-        // Click on backdrop (outside card) closes modal
         wrapper.addEventListener('click', (e) => {
             if (e.target === wrapper) {
                 handleModalClose(false);
             }
         });
 
-        // Keyboard navigation (Esc to close, Enter to submit)
         document.addEventListener('keydown', (e) => {
             if (!modalEl || !modalEl.classList.contains('paw-modal-active')) return;
 
@@ -237,7 +226,6 @@
                 e.preventDefault();
                 handleModalClose(false);
             } else if (e.key === 'Enter') {
-                // If textarea or specific button focused, let normal action occur
                 if (document.activeElement === cancelBtn) {
                     e.preventDefault();
                     handleModalClose(false);
@@ -304,11 +292,6 @@
     }
 
     const PawModal = {
-        /**
-         * Open a confirmation modal centered on the screen
-         * @param {Object|string} opts
-         * @returns {Promise<boolean>}
-         */
         confirm: function(opts) {
             return new Promise((resolve) => {
                 const options = typeof opts === 'string' ? { message: opts } : (opts || {});
@@ -361,7 +344,6 @@
                 confirmBtn.textContent = confirmText;
                 confirmBtn.className = 'paw-modal-btn paw-modal-confirm ' + type;
 
-                // Show modal with centering
                 modalEl.style.display = 'flex';
                 void modalEl.offsetWidth; // Reflow
                 modalEl.classList.add('paw-modal-active');
@@ -377,11 +359,6 @@
             });
         },
 
-        /**
-         * Open an alert modal (single OK button)
-         * @param {Object|string} opts
-         * @returns {Promise<void>}
-         */
         alert: function(opts) {
             return new Promise((resolve) => {
                 const options = typeof opts === 'string' ? { message: opts } : (opts || {});
@@ -443,11 +420,6 @@
             });
         },
 
-        /**
-         * Open an in-app prompt modal (replaces window.prompt)
-         * @param {Object|string} opts
-         * @returns {Promise<string|null>}
-         */
         prompt: function(opts) {
             return new Promise((resolve) => {
                 const options = typeof opts === 'string' ? { message: opts } : (opts || {});
@@ -512,20 +484,18 @@
     // =======================================================
     // 3. OVERRIDE BROWSER-NATIVE POPUPS (Safety Net)
     // =======================================================
-    // Override window.alert to show modern in-app toast
     window.alert = function(message) {
         PawNotify.warning(message, 'Notice');
     };
 
-    // Global in-app notification & modal objects
     window.PawNotify = PawNotify;
     window.PawModal = PawModal;
 
     // =======================================================
-    // 4. AUTOMATIC PAGE ENHANCEMENTS
+    // 4. AUTOMATIC PAGE ENHANCEMENTS & EVENT BINDINGS
     // =======================================================
-    document.addEventListener('DOMContentLoaded', function() {
-        // Automatically check URL parameters for notifications (e.g. ?success=... or ?error=... or ?msg=...)
+    function initEnhancements() {
+        // Automatically check URL parameters for notifications
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('success')) {
             PawNotify.success(urlParams.get('success'));
@@ -537,10 +507,13 @@
             PawNotify.info(urlParams.get('msg'));
         }
 
-        // Intercept logout links to provide confirmation modal
+        // Intercept logout links
         document.querySelectorAll('a[href$="/logout"], a[href$="/admin/logout"]').forEach(link => {
+            if (link.dataset.hasPawLogout) return;
+            link.dataset.hasPawLogout = 'true';
             link.addEventListener('click', function(e) {
                 e.preventDefault();
+                e.stopPropagation();
                 const destUrl = this.href;
                 PawModal.confirm({
                     title: 'Log Out?',
@@ -555,6 +528,12 @@
                 });
             });
         });
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initEnhancements);
+    } else {
+        initEnhancements();
+    }
 
 })();

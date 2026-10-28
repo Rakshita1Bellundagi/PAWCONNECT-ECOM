@@ -423,6 +423,26 @@ body.paw-modal-open {
     transform: rotate(90deg);
 }
 
+/* Modal Brand Header */
+.paw-modal-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #6366F1;
+    background: rgba(99, 102, 241, 0.08);
+    padding: 5px 14px;
+    border-radius: 50px;
+    margin-bottom: 18px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.paw-modal-brand .paw-modal-paw-icon {
+    font-size: 0.95rem;
+}
+
 .paw-modal-icon-wrapper {
     width: 68px;
     height: 68px;
@@ -742,6 +762,60 @@ body.paw-modal-open {
 .paw-toast.error .paw-toast-progress-bar { background: #EF4444; }
 .paw-toast.warning .paw-toast-progress-bar { background: #F59E0B; }
 .paw-toast.info .paw-toast-progress-bar { background: #6366F1; }
+
+/* Responsive Mobile Modal Styles */
+@media (max-width: 480px) {
+    .paw-modal-backdrop {
+        padding: 16px;
+        align-items: center;
+    }
+
+    .paw-modal-card {
+        width: 100%;
+        max-width: 360px;
+        padding: 24px 18px 20px;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.4);
+    }
+
+    .paw-modal-brand {
+        font-size: 0.72rem;
+        padding: 3px 10px;
+        margin-bottom: 12px;
+    }
+
+    .paw-modal-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        font-size: 1.5rem;
+        margin-bottom: 14px;
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.1);
+    }
+
+    .paw-modal-title {
+        font-size: 1.15rem;
+        margin-bottom: 6px;
+    }
+
+    .paw-modal-message {
+        font-size: 0.86rem;
+        margin-bottom: 20px;
+        padding: 0 4px;
+    }
+
+    .paw-modal-actions {
+        flex-direction: column-reverse; /* primary confirm on top for easy thumb reach, cancel on bottom */
+        gap: 10px;
+    }
+
+    .paw-modal-btn {
+        width: 100%;
+        padding: 13px 18px;
+        font-size: 0.95rem;
+        border-radius: 12px;
+    }
+}
+
 
 
 
